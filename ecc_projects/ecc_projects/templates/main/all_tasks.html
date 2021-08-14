@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<style>
+  /* .fonoto {
+    font-family: "Monaco", Monospace;
+    color: #545E6C;
+    background: #f5f5f5;
+    font-size: 14px;
+  } */
+</style>
+<div class="container fonoto">
+  <div class="container-fluid  p-3 mb-2" style="background-color: #eee;">
+    <div class="row">
+      <div class="col">
+        <p class="d-flex flex-column justify-content-center">{{date}}</p>
+      </div>
+      <div class="col d-flex justify-content-end">
+        <a class="btn btn-outline-primary" href="{% url 'main:task-create' %}">Add task</a>
+      </div>
+    </div>
+
+  </div>
+  <div class="row">
+
+    <div class="col-9">
+      <table class="table">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Creator</th>
+            <th scope="col">Owner</th>
+            <th scope="col">Status</th>
+            <th scope="col">Estimated duration</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {%for task in tasks%}
+          <tr>
+            <th scope="row">{{task.title}}</th>
+            <td>{{task.creator}}</td>
+            <td id="owner_{{task.id}}">
+              {%if task.is_assigned == True%}
+              {{task.owner}}
+              {%else%}
+              Not assigned yet
+              {%endif%}
+            </td>
+
+            <td id="status_{{task.id}}">{{task.status}}</td>
+            <td id="estimated_durattion_{{task.id}}">
+              {%if task.estimated_durattion%}
+              {{task.estimated_durattion}}
+              {%else%}
+              Not evaluated yet
+              {%endif%}
+            </td>
+            <td id="options_{{task.pk}}">
+              {%if task.status == "CR"%}
+              <button type="button" class="btn btn-outline-primary" data-toggle="modal"
+                data-target="#assignModal{{task.pk}}">Assign</button>
+
+              {%elif task.status == "AS"%}
+              <button type="button" class="btn btn-outline-success" data-toggle="modal"
+                data-target="#startModal{{task.pk}}">Start</button>
+
+              {%elif task.status == "PG"%}
+              <button class="btn btn-outline-danger" onclick="stop_task({{task.pk}})">Stop</button>
+
+              {%elif task.status == "SP"%}
+              <button type="button" class="btn btn-outline-info mr-1" onclick="upload_to_test_task({{task.pk}})">Upload to
+                test</button>
+              <button class="btn btn-outline-success" onclick="resume_task({{task.pk}})">Resume</button>
+
+              {%elif task.status == "RT"%}
+              <div class="btn btn-outline-success" onclick="validate_task({{task.pk}})">Validate</div>
+              <div class="btn btn-outline-warning" onclick="mark_to_reveiw_task({{task.pk}})">To review</div>
+
+              {%elif task.status == "RV"%}
+              <div class="btn btn-outline-success" onclick="start_reveiw_task({{task.pk}})">Start reveiw</div>
+             
+
+              {%elif task.status == "DN"%}
+              This task is done <a href="#">See detailas</a>
+              {%endif%}
+            </td>
+          </tr>
+
+          <div class="modal fade" id="assignModal{{task.pk}}" tabindex="-1" role="dialog"
+            aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <h1>{{task.pk}}</h1>
+                  <form action="{% url 'main:test-form'%}" method="POST">
+                    {% csrf_token %}
+                    <div id="assign_owner{{task.pk}}">{{form.owner|as_crispy_field}}</div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-outline-primary" data-dismiss="modal"
+                    onclick="assign_task({{task.pk}})">Save
+                    changes</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal fade" id="startModal{{task.pk}}" tabindex="-1" role="dialog"
+            aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <h1>{{task.pk}}</h1>
+                  <form action="#" method="POST">
+                    {% csrf_token %}
+                    <p>This task is assigned to {{task.owner.username}}, plese git it estimated time</p>
+                    <div id="id_estimated_durattion{{task.pk}}">{{form.estimated_durattion|as_crispy_field}}</div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+                  <button type="button" class="btn btn-outline-primary" data-dismiss="modal"
+                    onclick="start_task({{task.pk}})">Save changes</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          {%endfor%}
+
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+<script>
+  function assign_task(pk) {
+    var a = $("#assign_owner" + pk).find("div").find('div').find('select').find(":selected").val()
+    console.log("pk" + pk);
+    console.log("a" + a);
+    console.log(`task_in_page/${pk}/${a}/assign`);
+    var data = {};
+    $.ajax({
+      url: `task_in_page/${pk}/${a}/assign`,
+      type: 'GET',
+      data: data,
+      dataType: 'json',
+      success: function (resp) {
+        $(`#options_${pk}`).html(resp.button);
+        $(`#status_${pk}`).html(resp.status);
+        $(`#owner_${pk}`).html(resp.owner);
+      }
+    }).fail(function () {
+      alert("error");
+    })
+      ;
+  }
+  function start_task(pk) {
+    var estimated_durattion = $("#id_estimated_durattion" + pk).find("div").find('div').find("input").val();
+    var url = `task_in_page/${pk}/start`;
+
+    var data = {
+      "estimated_time": `${estimated_durattion}`,
+      "csrfmiddlewaretoken": $('input[name= csrfmiddlewaretoken]').val()
+    };
+    console.log("-------------------");
+    console.log(data);
+    $.ajax({
+      url: url,
+      type: 'POST',
+      data: data,
+      dataType: "json",
+      success: function (resp) {
+        $(`#options_${pk}`).html(resp.button);
+        $(`#status_${pk}`).html(resp.status);
+        $(`#estimated_durattion_${pk}`).html(resp.estimated_durattion);
+      }
+    }).fail(function () {
+      alert("error");
+    })
+      ;
+    console.log("-------------------" + estimated_durattion);
+  }
+  function stop_task(pk) {
+    url = `task_in_page/${pk}/stop`
+    var data = {};
+    $.ajax({
+      url: url,
+      type: 'GET',
+      data: data,
+      dataType: 'json',
+      success: function (resp) {
+        $(`#options_${pk}`).html(resp.button);
+        $(`#status_${pk}`).html(resp.status);
+      }
+    }).fail(function () {
+      alert("error");
+    })
+      ;
+  }
+  function upload_to_test_task(pk) {
+    url = `task_in_page/${pk}/upload_to_reveiw`
+    var data = {};
+    $.ajax({
+      url: url,
+      type: 'GET',
+      data: data,
+      dataType: 'json',
+      success: function (resp) {
+        $(`#options_${pk}`).html(resp.button);
+        $(`#status_${pk}`).html(resp.status);
+      }
+    }).fail(function () {
+      alert("error");
+    })
+      ;
+  }
+  function resume_task(pk) {
+    url = `task_in_page/${pk}/resume`
+    console.log(url)
+    var data = {};
+    $.ajax({
+      url: url,
+      type: 'GET',
+      data: data,
+      dataType: 'json',
+      success: function (resp) {
+        $(`#options_${pk}`).html(resp.button);
+        $(`#status_${pk}`).html(resp.status);
+      }
+    }).fail(function () {
+      alert("error");
+    })
+      ;
+  }
+  function validate_task(pk) {
+    url = `task_in_page/${pk}/validate`
+    var data = {};
+    $.ajax({
+      url: url,
+      type: 'GET',
+      data: data,
+      dataType: 'json',
+      success: function (resp) {
+        $(`#options_${pk}`).html(resp.button);
+        $(`#status_${pk}`).html(resp.status);
+      }
+    }).fail(function () {
+      alert("error");
+    })
+      ;
+  }
+  function mark_to_reveiw_task(pk) {
+    url = `task_in_page/${pk}/to_reveiw`
+    var data = {};
+    $.ajax({
+      url: url,
+      type: 'GET',
+      data: data,
+      dataType: 'json',
+      success: function (resp) {
+        $(`#options_${pk}`).html(resp.button);
+        $(`#status_${pk}`).html(resp.status);
+      }
+    }).fail(function () {
+      alert("error");
+    })
+      ;
+  }  
+  function start_reveiw_task(pk) {
+    url = `task_in_page/${pk}/start_reveiw`
+    var data = {};
+    $.ajax({
+      url: url,
+      type: 'GET',
+      data: data,
+      dataType: 'json',
+      success: function (resp) {
+        $(`#options_${pk}`).html(resp.button);
+        $(`#status_${pk}`).html(resp.status);
+      }
+    }).fail(function () {
+      alert("error");
+    })
+      ;
+  }  
+
+
+</script>
+
+{% endblock content %}
