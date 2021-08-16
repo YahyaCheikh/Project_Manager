@@ -1,6 +1,7 @@
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.views.generic.detail import DetailView
 from rest_framework import permissions
 from django.views.generic import TemplateView, ListView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -11,6 +12,8 @@ from rest_framework import mixins
 from rest_framework import generics
 from .permissions import IsOwnerOrReadOnly
 import datetime
+import io
+import urllib, base64
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -39,6 +42,29 @@ class TaskCreate(CreateView):
         form.instance.created_at = pytz.utc.localize(datetime.datetime.now())
         form.instance.creator = self.request.user
         return super().form_valid(form)
+    
+class TaskDetail(DetailView):
+    model = Task
+    context_object_name = "task"
+    template_name = 'main/task-detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        print("----------------------1-----------------------------")
+        print(self.object.unused_time)
+        print("----------------------2-----------------------------")
+        print(self.object.lost_in_ready_to_test)
+        print("----------------------3-----------------------------")
+        print(self.object.lost_in_to_reveiw)
+        print("----------------------4-----------------------------")
+        print(self.object.lost_in_stop)
+        print("----------------------5-----------------------------")
+        print(self.object.total_time)
+        print("----------------------------------------------------")
+        lables = ["Unused time","Lost in ready to test","Lost in to reveiw","Lost in stop"]
+        data = [self.object.unused_time.total_seconds()/60 ,self.object.lost_in_ready_to_test.total_seconds()/60 ,self.object.lost_in_to_reveiw.total_seconds()/60 ,self.object.lost_in_stop.total_seconds()/60 ]
+        context["data"], context["labels"]= data,lables
+        return context
 
 # ---------------------------------------------------
 #                 End Task CRUD
@@ -59,6 +85,17 @@ class LandingView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context= super().get_context_data(**kwargs)
         context["user"] = self.request.user
+        lables = []
+        data = []
+        if self.request.user.is_staff:
+            tasks = Task.objects.filter(status = "DN")
+            for task in tasks:
+                lables.append(task.title)
+                data.append(task.total_time.total_seconds()/60)
+        
+        context["labels"] = lables
+        context["data"] = data
+        
         return context
 
 
@@ -229,6 +266,17 @@ def start_reveiw_task(request, pk):
         }
         return JsonResponse(resp_data, status=200)
 
+def start_test_task(request, pk):
+    if request.is_ajax() and request.method == 'GET':
+        # main logic here setting the value of resp_data
+        task_to_start_test = Task.objects.get(pk = pk)
+        task_to_start_test.start_testing()
+        resp_data = {
+            'button': f'<div class="btn btn-outline-success" onclick="validate_task({pk})">Validate</div><div class="btn btn-outline-warning" onclick="mark_to_reveiw_task({pk})">To review</div>',
+            'status' : f'{task_to_start_test.status}'
+        }
+        return JsonResponse(resp_data, status=200)
+
 
 
 #test view
@@ -295,3 +343,57 @@ class EntreprenerDashboard(TemplateView):
 
     def get_context_data(self, **kwargs) :
         return super().get_context_data(**kwargs)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-----------------------------------matplotlib---------------------------------
+# import matplotlib.pyplot as plt                                             |                             |
+# plt.plot(list_of_times)                                                     |
+#         fig = plt.gcf()                                                     |
+#         buf = io.BytesIO()                                                  |
+#         fig.savefig(buf, format='png')                                      |
+#         buf.seek(0)                                                         |
+#         string = base64.b64encode(buf.read())                               |
+#         uri = urllib.parse.quote(string)                                    |
+#         context["chart"] = uri                                              |
+#-----------------------------------matplotlib---------------------------------

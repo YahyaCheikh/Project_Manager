@@ -8,9 +8,10 @@ urlpatterns = [
     # task urls
     # ----------------------------------------------
     path("task-create", TaskCreate.as_view(), name="task-create"),
+    path("task/<int:pk>/detail", TaskDetail.as_view(), name="task-detail"),
 
     # ----------------------------------------------
-    # task urls
+    # task-api- urls
     # ----------------------------------------------
 
 
@@ -30,6 +31,7 @@ urlpatterns = [
     path('task_in_page/<int:pk>/validate', validate_task, name="validate_in_html"),
     path('task_in_page/<int:pk>/to_reveiw', mark_as_to_reveiw_task, name="to_reveiw_in_html"),
     path('task_in_page/<int:pk>/start_reveiw', start_reveiw_task, name="start_reveiw_in_html"),
+    path('task_in_page/<int:pk>/start_test', start_test_task, name="start_test_in_html"),
 
     path("test-form",get_name_from_form, name="test-form")
 ]

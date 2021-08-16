@@ -53,6 +53,7 @@ class Task(models.Model):
     lost_in_ready_to_test = models.DurationField(default=timedelta(0))
     lost_in_to_reveiw = models.DurationField(default=timedelta(0))
     lost_in_stop = models.DurationField(default=timedelta(0))
+    total_time = models.DurationField(default=timedelta(0))
 
     class Meta:
         ordering = ['-created_at']
@@ -88,6 +89,8 @@ class Task(models.Model):
     
     def mark_as_ready_to_test(self):
         self.status = "RT"
+        stoped_duration = pytz.utc.localize(datetime.now()) - self.stoped_at
+        self.lost_in_stop =  self.lost_in_stop + stoped_duration
         self.marked_ready_to_test_at = pytz.utc.localize(datetime.now())
         self.save()
     
@@ -113,6 +116,8 @@ class Task(models.Model):
     
     def mark_as_done(self):
         self.marked_done_at = pytz.utc.localize(datetime.now())
+        self.total_time = pytz.utc.localize(datetime.now()) - self.start_time
+        self.unused_time = self.lost_in_ready_to_test + self.lost_in_stop +self.lost_in_to_reveiw
         self.status = "DN"
         self.save()
     
@@ -159,7 +164,7 @@ class ProjectModel(models.Model):
     
 
     name = models.CharField(max_length=200, verbose_name="Name")
-    owner = models.ForeignKey(PersonModel, on_delete=models.DO_NOTHING)
+    owner = models.ForeignKey(PersonModel, on_delete=models.DO_NOTHING, null=True)
     created_at = models.DateField()
     status = models.CharField(max_length=50, choices= Status.choices, default= Status.PG)
     developers = models.ManyToManyField(PersonModel, verbose_name="Developers", related_name="projectdev")

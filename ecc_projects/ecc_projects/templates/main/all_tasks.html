@@ -23,7 +23,7 @@
   </div>
   <div class="row">
 
-    <div class="col-9">
+    <div class="col-10">
       <table class="table">
         <thead class="thead-light">
           <tr>
@@ -48,7 +48,7 @@
               {%endif%}
             </td>
 
-            <td id="status_{{task.id}}">{{task.status}}</td>
+            <td id="status_{{task.id}}">{{task.get_status_display}}</td>
             <td id="estimated_durattion_{{task.id}}">
               {%if task.estimated_durattion%}
               {{task.estimated_durattion}}
@@ -74,6 +74,10 @@
               <button class="btn btn-outline-success" onclick="resume_task({{task.pk}})">Resume</button>
 
               {%elif task.status == "RT"%}
+              <div class="btn btn-outline-success" onclick="start_test_task({{task.pk}})">Start Testing</div>
+
+
+              {%elif task.status == "TS"%}
               <div class="btn btn-outline-success" onclick="validate_task({{task.pk}})">Validate</div>
               <div class="btn btn-outline-warning" onclick="mark_to_reveiw_task({{task.pk}})">To review</div>
 
@@ -82,7 +86,7 @@
              
 
               {%elif task.status == "DN"%}
-              This task is done <a href="#">See detailas</a>
+              This task is done <a href="{% url 'main:task-detail' task.id%}">See detailas</a>
               {%endif%}
             </td>
           </tr>
@@ -287,6 +291,23 @@
   }  
   function start_reveiw_task(pk) {
     url = `task_in_page/${pk}/start_reveiw`
+    var data = {};
+    $.ajax({
+      url: url,
+      type: 'GET',
+      data: data,
+      dataType: 'json',
+      success: function (resp) {
+        $(`#options_${pk}`).html(resp.button);
+        $(`#status_${pk}`).html(resp.status);
+      }
+    }).fail(function () {
+      alert("error");
+    })
+      ;
+  }  
+  function start_test_task(pk) {
+    url = `task_in_page/${pk}/start_test`
     var data = {};
     $.ajax({
       url: url,
