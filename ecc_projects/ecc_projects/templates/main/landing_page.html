@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static i18n %}
 
 {% block content %}
 <div class="container-fluid">
@@ -10,7 +11,14 @@
                     <a class="btn btn-primary" href="#">Add task</a>
                 </div>
                 {% if permission %}
-                <div class="mr-1">
+                <div class="m<div class="card">
+                                    <div class="card-header">
+                                        <h4 class="card-title">Basic Bar Chart</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="barChart_1"></canvas>
+                                    </div>
+                                </div>r-1">
                     <a class="btn btn-primary" href="#">Create Entrprise</a>
                 </div>
                 {%endif%}
@@ -73,51 +81,27 @@
 
     </div>
     {% if user.is_staff %}
-    <div class="d-flex justify-content-center m-3" style="width:23rem;  height:19rem">
-        <canvas class="mb-3" id="myChart" width="150px" height="150px"></canvas>
+    <div class="row">
+        <div class="col-lg-6 col-sm-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Gradient Line Chart</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="lineChart_2"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
     {% endif %}
 
+
+
+
 </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
 
-<script>
-    var ctx = document.getElementById('myChart').getContext('2d');
-    var myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: {{ labels| safe }},
-    datasets: [{
-        label: '# of minites',
-        data: {{ data| safe }},
-        backgroundColor: [
-        'rgba(255, 99, 132, 0.2)',
-        'rgba(54, 162, 235, 0.2)',
-        'rgba(255, 206, 86, 0.2)',
-        'rgba(75, 192, 192, 0.2)',
-        'rgba(153, 102, 255, 0.2)',
-        'rgba(255, 159, 64, 0.2)'
-    ],
-        borderColor: [
-        'rgba(255, 99, 132, 1)',
-        'rgba(54, 162, 235, 1)',
-        'rgba(255, 206, 86, 1)',
-        'rgba(75, 192, 192, 1)',
-        'rgba(153, 102, 255, 1)',
-    ],
-        borderWidth: 1
-        }]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-});
-</script>
 
+<!-- Script to update time left in html page -->
 <script>
     function update_time_left(pk) {
         console.log(pk);
@@ -140,5 +124,78 @@
     }
 
 </script>
+
+<!-- Script to line chart -->
+<script>
+    let draw = Chart.controllers.line.__super__.draw; //draw shadow
+    const lineChart_2 = document.getElementById("lineChart_2").getContext('2d');
+    //generate gradient
+    const lineChart_2gradientStroke = lineChart_2.createLinearGradient(500, 0, 100, 0);
+    lineChart_2gradientStroke.addColorStop(0, "rgba(26, 51, 213, 1)");
+    lineChart_2gradientStroke.addColorStop(1, "rgba(26, 51, 213, 0.5)");
+
+    Chart.controllers.line = Chart.controllers.line.extend({
+        draw: function () {
+            draw.apply(this, arguments);
+            let nk = this.chart.chart.ctx;
+            let _stroke = nk.stroke;
+            nk.stroke = function () {
+                nk.save();
+                nk.shadowColor = 'rgba(0, 0, 128, .2)';
+                nk.shadowBlur = 10;
+                nk.shadowOffsetX = 0;
+                nk.shadowOffsetY = 10;
+                _stroke.apply(this, arguments)
+                nk.restore();
+            }
+        }
+    });
+
+    lineChart_2.height = 100;
+
+    new Chart(lineChart_2, {
+        type: 'line',
+        data: {
+            defaultFontFamily: 'Poppins',
+            labels: {{ labels| safe }},
+        datasets: [
+        {
+            label: "My First dataset",
+            data: {{ data| safe }},
+        borderColor: lineChart_2gradientStroke,
+        borderWidth: "2",
+        backgroundColor: 'transparent',
+        pointBackgroundColor: 'rgba(26, 51, 213, 0.5)'
+                }
+    ]
+        },
+        options: {
+        legend: false,
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true,
+                    max: 100,
+                    min: 0,
+                    stepSize: 20,
+                    padding: 10
+                }
+            }],
+            xAxes: [{
+                ticks: {
+                    padding: 5
+                }
+            }]
+        }
+    }
+    });
+
+</script>
+
+<script src="{% static 'main/vendor/global/global.min.js'%}"></script>
+<script src="{% static 'main/js/quixnav-init.js'%}"></script>
+<script src="{% static 'main/js/custom.min.js'%}"></script>
+
+<script src="{% static 'main/vendor/chart.js/Chart.bundle.min.js'%}"></script>
 
 {% endblock content %}

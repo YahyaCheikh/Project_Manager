@@ -50,17 +50,7 @@ class TaskDetail(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        print("----------------------1-----------------------------")
-        print(self.object.unused_time)
-        print("----------------------2-----------------------------")
-        print(self.object.lost_in_ready_to_test)
-        print("----------------------3-----------------------------")
-        print(self.object.lost_in_to_reveiw)
-        print("----------------------4-----------------------------")
-        print(self.object.lost_in_stop)
-        print("----------------------5-----------------------------")
-        print(self.object.total_time)
-        print("----------------------------------------------------")
+        
         lables = ["Unused time","Lost in ready to test","Lost in to reveiw","Lost in stop"]
         data = [self.object.unused_time.total_seconds()/60 ,self.object.lost_in_ready_to_test.total_seconds()/60 ,self.object.lost_in_to_reveiw.total_seconds()/60 ,self.object.lost_in_stop.total_seconds()/60 ]
         context["data"], context["labels"]= data,lables
@@ -168,7 +158,7 @@ def assigne_task(request, pk, user_pk):
         task_to_assign.assign_task(owner)
         resp_data = {
             'button': f'<button type="button" class="btn btn-outline-success" data-toggle="modal" data-target="#startModal{pk}">Start</button>',
-            'status' : f'{task_to_assign.status}',
+            'status' : f'<span class="badge badge-outline-secondary">{task_to_assign.get_status_display()}</span>',
             'owner' : f'{task_to_assign.owner}',
         }
         return JsonResponse(resp_data, status=200)
@@ -181,7 +171,7 @@ def start_task(request, pk):
         task_to_start.start_task(estimated_duration)
         resp_data = {
             'button': f'<div class="btn btn-outline-danger" onclick="stop_task({pk})">Stop</div>',
-            'status' : f'{task_to_start.status}',
+            'status' : f'<span class="badge badge-outline-secondary">{task_to_start.get_status_display()}</span>',
             'estimated_durattion' : f'{task_to_start.estimated_durattion}'
         }
         return JsonResponse(resp_data, status=200)
@@ -193,7 +183,7 @@ def stop_task(request, pk):
         task_to_stop.stop_task()
         resp_data = {
             'button': f'<button type="button" class="btn btn-outline-info mr-1" onclick="upload_to_test_task({pk})" >Upload totest</button><button class="btn btn-outline-success" onclick="resume_task({pk})">Resume</button>',
-            'status' : f'{task_to_stop.status}'
+            'status' : f'<span class="badge badge-outline-secondary">{task_to_stop.get_status_display()}</span>'
         }
         return JsonResponse(resp_data, status=200)
 
@@ -207,7 +197,7 @@ def upload_to_test_task(request, pk):
             button = "Task uploaded to test"
         resp_data = {
             'button': button,
-            'status' : f'{task_to_upload_to_review.status}'
+            'status' : f'<span class="badge badge-outline-secondary">{task_to_upload_to_review.get_status_display()}</span>'
         }
         return JsonResponse(resp_data, status=200)
 
@@ -218,7 +208,7 @@ def to_reveiw_task(request, pk):
         task_to_review.mark_as_to_reveiw()
         resp_data = {
             'button': '<button type="button" class="btn btn-outline-info mr-1" data-toggle="modal" data-target="#exampleModal">Reupload to test</button>',
-            'status' : f'{task_to_review.status}'
+            'status' : f'<span class="badge badge-outline-secondary">{task_to_review.get_status_display()}</span>'
         }
         return JsonResponse(resp_data, status=200)
 
@@ -229,7 +219,7 @@ def resume_task(request, pk):
         task_to_resume.resume_task()
         resp_data = {
             'button': f'<div class="btn btn-outline-danger" onclick="stop_task({pk})">Stop</div>',
-            'status' : f'{task_to_resume.status}'
+            'status' : f'<span class="badge badge-outline-secondary">{task_to_resume.get_status_display()}</span>'
         }
         return JsonResponse(resp_data, status=200)
 
@@ -240,7 +230,7 @@ def validate_task(request, pk):
         task_to_validate.mark_as_done()
         resp_data = {
             'button': 'This task is done <a href="#">See detailas</a>',
-            'status' : f'{task_to_validate.status}'
+            'status' : f'{task_to_validate.get_status_display()}'
         }
         return JsonResponse(resp_data, status=200)
 
@@ -251,7 +241,7 @@ def mark_as_to_reveiw_task(request, pk):
         task_to_mark_as_to_reveiw.mark_as_to_reveiw()
         resp_data = {
             'button': '<div class="btn btn-outline-success" onclick="start_reveiw_task({pk})">Start reveiw</div>',
-            'status' : f'{task_to_mark_as_to_reveiw.status}'
+            'status' : f'<span class="badge badge-outline-secondary">{task_to_mark_as_to_reveiw.get_status_display()}</span>'
         }
         return JsonResponse(resp_data, status=200)
 
@@ -262,7 +252,7 @@ def start_reveiw_task(request, pk):
         task_to_start_eveiw.start_reveiwing()
         resp_data = {
             'button': f'<div class="btn btn-outline-danger" onclick="stop_task({pk})">Stop</div>',
-            'status' : f'{task_to_start_eveiw.status}'
+            'status' : f'<span class="badge badge-outline-secondary">{task_to_start_eveiw.get_status_display()}</span>'
         }
         return JsonResponse(resp_data, status=200)
 
@@ -272,8 +262,8 @@ def start_test_task(request, pk):
         task_to_start_test = Task.objects.get(pk = pk)
         task_to_start_test.start_testing()
         resp_data = {
-            'button': f'<div class="btn btn-outline-success" onclick="validate_task({pk})">Validate</div><div class="btn btn-outline-warning" onclick="mark_to_reveiw_task({pk})">To review</div>',
-            'status' : f'{task_to_start_test.status}'
+            'button': f'<div class="btn btn-outline-success mr-1" onclick="validate_task({pk})">Validate</div><div class="btn btn-outline-warning" onclick="mark_to_reveiw_task({pk})">To review</div>',
+            'status' : f'<span class="badge badge-outline-secondary">{task_to_start_test.get_status_display()}</span>'
         }
         return JsonResponse(resp_data, status=200)
 
