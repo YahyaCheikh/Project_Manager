@@ -17,4 +17,6 @@ After that, each member can start his task, and mark it as completed or stopped 
 When the task is completed, the member uploads it for testing.   
 The administrator can then either mark the task as completed or request that it be resumed. In the latter case, a task is reassigned to its owner to review and add what was not done.  
 
-
+Once the task is completed, the administrator can access very useful statistics about the completion of each task.   
+- The time it took to complete 
+- The time lost (difference between the time worked and the total time (from start to finish, breaks counted))
