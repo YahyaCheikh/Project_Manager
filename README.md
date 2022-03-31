@@ -9,11 +9,10 @@ In order to facilitate the achievement of a major goal, the team divides it into
 What project management is :
 
 The project management is the process of assigning tasks to team members, and working on well realisation of them.
-Meanwhile this process is not linear, 
+However, this process is not linear, and can sometimes be very complicated and lead to many disturbances.   
 
-Managing teams is becaming more and more complicated, specialy when the number of task to be realised become huge.
+To make task management easier, I developed this project, in fact this web application allows project managers to create tasks, then assign them to group members.   
 
-
-
-
-This is a web application project, I have developed
+After that, each member can start his task, and mark it as completed or stopped whenever he wants. 
+When the task is completed, the member uploads it for testing.   
+The administrator can then either mark the task as completed or request that it be resumed. In the latter case, a task is reassigned to its owner to review and add what was not done.  
