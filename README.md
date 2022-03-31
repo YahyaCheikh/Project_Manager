@@ -16,3 +16,7 @@ To make task management easier, I developed this project, in fact this web appli
 After that, each member can start his task, and mark it as completed or stopped whenever he wants. 
 When the task is completed, the member uploads it for testing.   
 The administrator can then either mark the task as completed or request that it be resumed. In the latter case, a task is reassigned to its owner to review and add what was not done.  
+
+Once the task is complete, the admin can have acces to some statistics very usfule concering the realisation of each task   
+- The time it have taken to bea realised 
+- The time wested time (defrence between the worked time and the whol time (from start to end, break counted))
