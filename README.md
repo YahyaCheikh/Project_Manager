@@ -19,4 +19,13 @@ The administrator can then either mark the task as completed or request that it 
 
 Once the task is completed, the administrator can access very useful statistics about the completion of each task.   
 - The time it took to complete 
-- The time lost (difference between the time worked and the total time (from start to finish, breaks counted))
+- The time lost (difference between the time worked and the total time (from start to finish, breaks counted))   
+
+
+![](tm1.png)
+![](tm2.png)
+![](tm3.png)
+![](tm4.png)
+![](tm5.png)
+![](tm6.png)
+![](tm7.png)
